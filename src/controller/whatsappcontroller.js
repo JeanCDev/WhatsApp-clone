@@ -254,7 +254,141 @@ class WhatsAppController{
             this.el.modalContacts.hide();
 
         });
+
+        //eventos do microfone
+        this.el.btnSendMicrophone.on('click', e=>{
+
+            this.el.recordMicrophone.show();
+            this.el.btnSendMicrophone.hide();
+            this.startRecordMicrophoneTime();
+
+        });
+
+        this.el.btnCancelMicrophone.on('click', e=>{
+
+           this.closeRecordMicrophone();
+
+        });
+
+        this.el.btnFinishMicrophone.on('click', e=>{
+
+            this.closeRecordMicrophone();
+
+        });
+
+        // eventos do campo de texto
+        this.el.inputText.on('keypress', e => {
+
+            if(e.key === 'Enter' && !e.ctrlKey){
+
+                e.preventDefault();
+                this.el.btnSend.click();
+
+            }
+
+        });
+
+        this.el.inputText.on('keyup', event => {
+
+            if(this.el.inputText.innerHTML.length){
+
+                this.el.inputPlaceholder.hide();
+                this.el.btnSendMicrophone.hide();
+                this.el.btnSend.show();
+
+            } else{
+
+                this.el.inputPlaceholder.show();
+                this.el.btnSendMicrophone.show();
+                this.el.btnSend.hide();
+
+            }
+
+        });
+
+        // eventos do botão de emojis
+        this.el.btnEmojis.on('click', e=>{
+
+            this.el.panelEmojis.toggleClass('open');
+
+        });
+
+        //eventos do painel de emojis
+        this.el.panelEmojis.querySelectorAll('.emojik').forEach(emoji =>{
+
+            emoji.on('click', e =>{
+
+                console.log(emoji.dataset.unicode);
+
+                let img = this.el.imgEmojiDefault.cloneNode();
+
+                img.style.cssText = emoji.style.cssText;
+                img.dataset.unicode = emoji.dataset.unicode;
+                img.al = emoji.dataset.unicode;
+
+                emoji.classList.forEach(name =>{
+
+                    img.classList.add(name);
+
+                });
+
+                let cursor = window.getSelection();
+
+                if(!cursor.focusNode && !cursor.focusNode.id == 'input-text'){
+                    this.el.inputText.focus();
+                    cursor = window.getSelection();
+                }
+
+                let range = document.createRange();
+
+                range = cursor.getRangeAt(0);
+                range.deleteContents();
+
+                let frag = document.createDocumentFragment();
+                frag.appendChild(img);
+
+                range.insertNode(frag);
+
+                range.setStartAfter(img);
+
+                this.el.inputText.dispatchEvent(new Event('keyup'));
+
+            });
+
+        });
         
+        // Evento do botão de enviar mensagem
+        this.el.btnSend.on('click', e=>{
+
+            console.log(this.el.inputText.innerHTML);
+
+        });
+
+    }
+
+    // inicia o timer da gravação do microfone
+    startRecordMicrophoneTime(){
+
+        let start = Date.now();
+
+        this._recordMicrophoneInterval = setInterval(() => {
+            
+            this.el.recordMicrophoneTimer.innerHTML = Format.toTime(Date.now() - start);
+
+        }, 100);
+
+    }
+
+    // formata o tempo da gravação
+
+
+    // fecha painel de gravação de audio
+    closeRecordMicrophone(){
+
+        this.el.recordMicrophone.hide();
+        this.el.btnSendMicrophone.show();
+        clearInterval(this._recordMicrophoneInterval);
+
     }
 
     //fecha todos os paineis principais
