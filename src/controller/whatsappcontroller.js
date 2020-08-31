@@ -1,6 +1,16 @@
-class WhatsAppController{
+import {
+    Format
+} from './../utils/format';
+import {
+    CameraController
+} from './../controller/cameraController';
+import {
+    DocumentPreviewController
+} from './../controller/documentPreviewController';
 
-    constructor(){
+export class WhatsAppController {
+
+    constructor() {
 
         this.elementsPrototype();
         this.loadElements();
@@ -9,11 +19,11 @@ class WhatsAppController{
     }
 
     // carrega os elementos pelo id dinamicamente
-    loadElements(){
+    loadElements() {
 
         this.el = {};
 
-        document.querySelectorAll('[id]').forEach(element =>{
+        document.querySelectorAll('[id]').forEach(element => {
 
             this.el[Format.getCamelCase(element.id)] = element;
 
@@ -22,35 +32,35 @@ class WhatsAppController{
     }
 
     // ferramentas
-    elementsPrototype(){
+    elementsPrototype() {
 
         // esconde elemento
-        Element.prototype.hide = function(){
+        Element.prototype.hide = function () {
             this.style.display = 'none';
             return this;
         }
 
         //mostra elemento
-        Element.prototype.show = function(){
+        Element.prototype.show = function () {
             this.style.display = 'block';
             return this;
         }
 
         // esconde ou mostra elemento conforme o estado
-        Element.prototype.toggle = function(){
+        Element.prototype.toggle = function () {
             this.style.display = (this.style.display === 'none') ? 'block' : 'none';
             return this;
         }
 
         // adiciona eventListener em um elemento
-        Element.prototype.on = function(events, fn){
-            events.split(' ').forEach(event =>{
+        Element.prototype.on = function (events, fn) {
+            events.split(' ').forEach(event => {
                 this.addEventListener(event, fn);
             });
             return this;
         }
 
-        // adiciona stylos css em um elemento
+        // adiciona styles css em um elemento
         Element.prototype.css = function (styles) {
             for (let name in styles) {
                 this.style[name] = styles[name];
@@ -90,7 +100,7 @@ class WhatsAppController{
         HTMLFormElement.prototype.toJSON = function () {
             let json = {};
 
-            this.getForm().forEach((value, key)=>{
+            this.getForm().forEach((value, key) => {
                 json[key] = value;
             });
 
@@ -100,50 +110,50 @@ class WhatsAppController{
     }
 
     //inicia os eventos
-    initEvents(){
+    initEvents() {
 
         // Eventos do menu de adicionar contatos
-        this.el.btnNewContact.on('click', e =>{
+        this.el.btnNewContact.on('click', e => {
 
             this.closeAllLeftPanels();
             this.el.panelAddContact.show();
-            setTimeout(()=>{
+            setTimeout(() => {
                 this.el.panelAddContact.addClass('open');
             }, 300);
 
         });
 
-        this.el.formPanelAddContact.on('submit', e=>{
+        this.el.formPanelAddContact.on('submit', e => {
             e.preventDefault();
 
             let formData = new FormData(this.el.formPanelAddContact);
         });
 
-        this.el.btnClosePanelAddContact.on('click', e=>{
+        this.el.btnClosePanelAddContact.on('click', e => {
             this.el.panelAddContact.removeClass('open');
         });
 
         // eventos da edição do perfil
-        this.el.myPhoto.on('click', e =>{
+        this.el.myPhoto.on('click', e => {
 
             this.closeAllLeftPanels();
             this.el.panelEditProfile.show();
-            setTimeout(()=>{
+            setTimeout(() => {
                 this.el.panelEditProfile.addClass('open');
             }, 300);
-            
+
         });
 
-        this.el.btnClosePanelEditProfile.on('click', e=>{
+        this.el.btnClosePanelEditProfile.on('click', e => {
             this.el.panelEditProfile.removeClass('open');
         });
 
-        this.el.photoContainerEditProfile.on('click', e=>{
+        this.el.photoContainerEditProfile.on('click', e => {
             this.el.inputProfilePhoto.click();
         });
 
-        this.el.inputNamePanelEditProfile.on('keypress', e=>{
-            if(e.key === 'Enter'){
+        this.el.inputNamePanelEditProfile.on('keypress', e => {
+            if (e.key === 'Enter') {
 
                 e.preventDefault();
                 this.el.btnSavePanelEditProfile.click();
@@ -151,18 +161,18 @@ class WhatsAppController{
             }
         });
 
-        this.el.btnSavePanelEditProfile.on('click', e=>{
+        this.el.btnSavePanelEditProfile.on('click', e => {
             console.log(this.el.inputNamePanelEditProfile.innerHTML);
         });
 
         // Eventos da lista de contatos
-        this.el.contactsMessagesList.querySelectorAll('.contact-item').forEach(item =>{
+        this.el.contactsMessagesList.querySelectorAll('.contact-item').forEach(item => {
 
-            item.on('click', e=>{
+            item.on('click', e => {
 
                 this.el.home.hide();
                 this.el.main.css({
-                    display:'flex'
+                    display: 'flex'
                 });
             });
 
@@ -171,7 +181,7 @@ class WhatsAppController{
         // Eventos do menu de anexos
 
         //abrer menu de anexos
-        this.el.btnAttach.on('click', e=>{
+        this.el.btnAttach.on('click', e => {
 
             e.stopPropagation();
             this.el.menuAttach.addClass('open');
@@ -180,83 +190,163 @@ class WhatsAppController{
         });
 
         // eventos de enviar foto
-        this.el.btnAttachPhoto.on('click', e=>{
+        this.el.btnAttachPhoto.on('click', e => {
             this.el.inputPhoto.click();
         });
 
-        this.el.inputPhoto.on('change', e=>{
+        this.el.inputPhoto.on('change', e => {
             console.log(this.el.inputPhoto.files);
 
-            [...this.el.inputPhoto.files].forEach(file=>{
+            [...this.el.inputPhoto.files].forEach(file => {
                 console.log(file);
             });
         });
 
         // eventos de enviar foto da camera
-        this.el.btnAttachCamera.on('click', e=>{
-            
+        this.el.btnAttachCamera.on('click', e => {
+
             this.closeAllMainPanel();
             this.el.panelCamera.addClass('open');
             this.el.panelCamera.css({
-                'height':'100%'
+                'height': '100%'
             });
+
+            this._camera = new CameraController(this.el.videoCamera);
 
         });
 
-        this.el.btnClosePanelCamera.on('click', e=>{
+        this.el.btnClosePanelCamera.on('click', e => {
 
             this.closeAllMainPanel()
             this.el.panelMessagesContainer.show();
+            this._camera.stop();
 
         });
 
-        this.el.btnTakePicture.on('click', e=>{
-            console.log('Tira foto');
+        this.el.btnTakePicture.on('click', e => {
+
+            let dataUrl = this._camera.takePicture();
+
+            this.el.pictureCamera.src = dataUrl;
+            this.el.pictureCamera.show();
+            this.el.videoCamera.hide();
+            this.el.btnReshootPanelCamera.show();
+            this.el.containerTakePicture.hide();
+            this.el.containerSendPicture.show();
+
         });
 
-        // eventos de enviar documeto
-        this.el.btnAttachDocument.on('click', e=>{
-            console.log('Document');
+        this.el.btnReshootPanelCamera.on('click', e => {
+
+            this.el.pictureCamera.hide();
+            this.el.videoCamera.show();
+            this.el.btnReshootPanelCamera.hide();
+            this.el.containerTakePicture.show();
+            this.el.containerSendPicture.hide();
+
         });
 
-        this.el.btnAttachDocument.on('click', e=>{
+        this.el.btnSendPicture.on('click', e => {
+
+            console.log(this.el.pictureCamera.src);
+
+        });
+
+        // eventos de enviar documento
+        this.el.btnAttachDocument.on('click', e => {
+            //console.log('Document');
+        });
+
+        this.el.btnAttachDocument.on('click', e => {
 
             this.closeAllMainPanel();
             this.el.panelDocumentPreview.addClass('open');
             this.el.panelDocumentPreview.css({
-                'height':'100%'
+                'height': '100%'
             });
+
+            this.el.inputDocument.click();
 
         });
 
-        this.el.btnClosePanelDocumentPreview.on('click', e=>{
+        this.el.inputDocument.on('change', e => {
+
+            if (this.el.inputDocument.files.length) {
+                let file = this.el.inputDocument.files[0];
+
+                this._documentPreviewController = new DocumentPreviewController(file);
+
+                this._documentPreviewController.getPreviewData().then(result => {
+
+                    console.log(result.src);
+
+                    this.el.imgPanelDocumentPreview.src = result.src;
+                    this.el.infoPanelDocumentPreview.innerHTML = result.info;
+                    this.el.imagePanelDocumentPreview.show();
+                    this.el.filePanelDocumentPreview.hide();
+
+                }).catch(err => {
+                    
+                    switch (file.type) {
+                        
+                        case 'application/vnd.ms-excel':
+                        case 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
+                            this.el.iconPanelDocumentPreview.className = 'jcxhw icon-doc-xls';
+                            break;
+
+                        case 'application/vnd.ms-powerpoint':
+                        case 'application/vnd.openxmlformats-officedocument.presentationml.presentation':
+                            this.el.iconPanelDocumentPreview.className = 'jcxhw icon-doc-ppt';
+                            break;
+
+                        case 'application/msword':
+                        case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
+                            this.el.iconPanelDocumentPreview.className = 'jcxhw icon-doc-doc';
+                            break;
+                        
+                        default:
+                            this.el.iconPanelDocumentPreview.className = 'jcxhw icon-doc-generic';
+
+                    }
+
+                    this.el.filenamePanelDocumentPreview.innerHTML = file.name;
+
+                    this.el.imagePanelDocumentPreview.hide();
+                    this.el.filePanelDocumentPreview.show();
+                    
+                });
+            }
+
+        });
+
+        this.el.btnClosePanelDocumentPreview.on('click', e => {
 
             this.closeAllMainPanel();
             this.el.panelMessagesContainer.show();
 
         });
 
-        this.el.btnSendDocument.on('click', e=>{
+        this.el.btnSendDocument.on('click', e => {
 
             console.log('Send Document');
 
         });
 
         // eventos de enviar contato
-        this.el.btnAttachContact.on('click', e=>{
+        this.el.btnAttachContact.on('click', e => {
 
             this.el.modalContacts.show();
 
         });
 
-        this.el.btnCloseModalContacts.on('click', e=>{
+        this.el.btnCloseModalContacts.on('click', e => {
 
             this.el.modalContacts.hide();
 
         });
 
         //eventos do microfone
-        this.el.btnSendMicrophone.on('click', e=>{
+        this.el.btnSendMicrophone.on('click', e => {
 
             this.el.recordMicrophone.show();
             this.el.btnSendMicrophone.hide();
@@ -264,13 +354,13 @@ class WhatsAppController{
 
         });
 
-        this.el.btnCancelMicrophone.on('click', e=>{
+        this.el.btnCancelMicrophone.on('click', e => {
 
-           this.closeRecordMicrophone();
+            this.closeRecordMicrophone();
 
         });
 
-        this.el.btnFinishMicrophone.on('click', e=>{
+        this.el.btnFinishMicrophone.on('click', e => {
 
             this.closeRecordMicrophone();
 
@@ -279,7 +369,7 @@ class WhatsAppController{
         // eventos do campo de texto
         this.el.inputText.on('keypress', e => {
 
-            if(e.key === 'Enter' && !e.ctrlKey){
+            if (e.key === 'Enter' && !e.ctrlKey) {
 
                 e.preventDefault();
                 this.el.btnSend.click();
@@ -290,13 +380,13 @@ class WhatsAppController{
 
         this.el.inputText.on('keyup', event => {
 
-            if(this.el.inputText.innerHTML.length){
+            if (this.el.inputText.innerHTML.length) {
 
                 this.el.inputPlaceholder.hide();
                 this.el.btnSendMicrophone.hide();
                 this.el.btnSend.show();
 
-            } else{
+            } else {
 
                 this.el.inputPlaceholder.show();
                 this.el.btnSendMicrophone.show();
@@ -307,16 +397,16 @@ class WhatsAppController{
         });
 
         // eventos do botão de emojis
-        this.el.btnEmojis.on('click', e=>{
+        this.el.btnEmojis.on('click', e => {
 
             this.el.panelEmojis.toggleClass('open');
 
         });
 
         //eventos do painel de emojis
-        this.el.panelEmojis.querySelectorAll('.emojik').forEach(emoji =>{
+        this.el.panelEmojis.querySelectorAll('.emojik').forEach(emoji => {
 
-            emoji.on('click', e =>{
+            emoji.on('click', e => {
 
                 console.log(emoji.dataset.unicode);
 
@@ -326,7 +416,7 @@ class WhatsAppController{
                 img.dataset.unicode = emoji.dataset.unicode;
                 img.al = emoji.dataset.unicode;
 
-                emoji.classList.forEach(name =>{
+                emoji.classList.forEach(name => {
 
                     img.classList.add(name);
 
@@ -334,7 +424,7 @@ class WhatsAppController{
 
                 let cursor = window.getSelection();
 
-                if(!cursor.focusNode && !cursor.focusNode.id == 'input-text'){
+                if (!cursor.focusNode && !cursor.focusNode.id == 'input-text') {
                     this.el.inputText.focus();
                     cursor = window.getSelection();
                 }
@@ -356,9 +446,9 @@ class WhatsAppController{
             });
 
         });
-        
+
         // Evento do botão de enviar mensagem
-        this.el.btnSend.on('click', e=>{
+        this.el.btnSend.on('click', e => {
 
             console.log(this.el.inputText.innerHTML);
 
@@ -367,12 +457,12 @@ class WhatsAppController{
     }
 
     // inicia o timer da gravação do microfone
-    startRecordMicrophoneTime(){
+    startRecordMicrophoneTime() {
 
         let start = Date.now();
 
         this._recordMicrophoneInterval = setInterval(() => {
-            
+
             this.el.recordMicrophoneTimer.innerHTML = Format.toTime(Date.now() - start);
 
         }, 100);
@@ -383,7 +473,7 @@ class WhatsAppController{
 
 
     // fecha painel de gravação de audio
-    closeRecordMicrophone(){
+    closeRecordMicrophone() {
 
         this.el.recordMicrophone.hide();
         this.el.btnSendMicrophone.show();
@@ -392,7 +482,7 @@ class WhatsAppController{
     }
 
     //fecha todos os paineis principais
-    closeAllMainPanel(){
+    closeAllMainPanel() {
 
         this.el.panelMessagesContainer.hide();
         this.el.panelDocumentPreview.removeClass('open');
@@ -401,7 +491,7 @@ class WhatsAppController{
     }
 
     // Fecha menu de anexos
-    closeMenuAttach(e){
+    closeMenuAttach(e) {
 
         document.removeEventListener('click', this.closeMenuAttach);
         this.el.menuAttach.removeClass('open');
@@ -409,7 +499,7 @@ class WhatsAppController{
     }
 
     // Fecha paineis abertos no momento de abertura de outro
-    closeAllLeftPanels(){
+    closeAllLeftPanels() {
         this.el.panelAddContact.hide();
         this.el.panelEditProfile.hide();
     }

@@ -1,4 +1,4 @@
-class Format{
+export class Format{
 
     // formata os ids dos elementos no padrão camelCase
     static getCamelCase(text){
