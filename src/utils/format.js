@@ -11,6 +11,7 @@ export class Format{
 
     }
 
+    // formata o tempo 
     static toTime(duration){
 
         let seconds = parseInt((duration / 1000) % 60);

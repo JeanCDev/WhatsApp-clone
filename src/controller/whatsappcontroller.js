@@ -10,14 +10,62 @@ import {
 import {
     DocumentPreviewController
 } from './../controller/documentPreviewController';
+import {
+    Firebase
+} from './../utils/fireBase';
+import { 
+    User 
+} from '../model/user';
 
 export class WhatsAppController {
 
     constructor() {
 
+        this._firebase = new Firebase();
+        this.initAuth();
+
         this.elementsPrototype();
         this.loadElements();
         this.initEvents();
+
+    }
+
+    // inicia autenticação no firebase 
+    initAuth() {
+
+        this._firebase.initAuth()
+            .then(response=> {
+
+                this._user = new User(response);
+
+                // atualizar informações do app com as informações do firebase
+                this._user.on('datachange', data =>{
+
+                    document.querySelector('title').innerHTML = data.name + ' - WhatsApp Clone';
+
+                    this.el.inputNamePanelEditProfile.innerHTML = data.name;
+                    
+                    if (data.photo){
+
+                        let photo = this.el.imgPanelEditProfile;
+                        photo.src = data.photo;
+                        photo.show();
+                        this.el.imgDefaultPanelEditProfile.hide();
+
+                        let photo2 = this.el.myPhoto.querySelector('img');
+                        photo2.src = data.photo;
+                        photo2.show();
+
+                    }
+                    
+                    this.el.appContent.css({display: 'flex'});
+
+                });
+
+            })
+            .catch(err =>{
+                console.error(err);
+            });
 
     }
 
@@ -165,7 +213,18 @@ export class WhatsAppController {
         });
 
         this.el.btnSavePanelEditProfile.on('click', e => {
-            console.log(this.el.inputNamePanelEditProfile.innerHTML);
+
+            this.el.btnSavePanelEditProfile.disabled = true;
+
+            this._user.name = this.el.inputNamePanelEditProfile.innerHTML;
+
+            this._user.save().then(() => {
+
+                this.el.btnSavePanelEditProfile.disabled = true;
+
+            });
+
+            console.log();
         });
 
         // Eventos da lista de contatos
@@ -331,26 +390,32 @@ export class WhatsAppController {
 
             this.el.recordMicrophone.show();
             this.el.btnSendMicrophone.hide();
-            this.startRecordMicrophoneTime();
 
             this._microphoneController = new MicrophoneController();
-            
-            this._microphoneController.on('play', audio => {
-                console.log('Recebido o audio', audio.src);
+
+            this._microphoneController.on('ready', audio => {
+                this._microphoneController.startRecorder();
+                console.log('ready event');
+            });
+
+            this._microphoneController.on('recordtimer', timer =>{
+
+                this.el.recordMicrophoneTimer.innerHTML = Format.toTime(timer);
+
             });
 
         });
 
         this.el.btnCancelMicrophone.on('click', e => {
 
-            this._microphoneController.stop();
+            this._microphoneController.stopRecorder();
             this.closeRecordMicrophone();
 
         });
 
         this.el.btnFinishMicrophone.on('click', e => {
 
-            this._microphoneController.stop();
+            this._microphoneController.stopRecorder();
             this.closeRecordMicrophone();
 
         });
@@ -444,22 +509,6 @@ export class WhatsAppController {
         });
 
     }
-
-    // inicia o timer da gravação do microfone
-    startRecordMicrophoneTime() {
-
-        let start = Date.now();
-
-        this._recordMicrophoneInterval = setInterval(() => {
-
-            this.el.recordMicrophoneTimer.innerHTML = Format.toTime(Date.now() - start);
-
-        }, 100);
-
-    }
-
-    // formata o tempo da gravação
-
 
     // fecha painel de gravação de audio
     closeRecordMicrophone() {

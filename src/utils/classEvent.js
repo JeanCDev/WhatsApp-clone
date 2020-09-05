@@ -6,6 +6,7 @@ export class ClassEvent{
 
     }
 
+    // trata eventos personalizados
     on(eventName, fn){
 
         if(!this._events[eventName]) this._events[eventName] = new Array();
@@ -14,6 +15,7 @@ export class ClassEvent{
 
     }
 
+    // gatilho dos eventos personalizados
     trigger(){
 
         let args = [...arguments];

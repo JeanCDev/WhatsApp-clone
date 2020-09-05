@@ -1,6 +1,7 @@
 const pdfjsLib = require('pdfjs-dist');
 const path = require('path');
 
+// inicia a lib de leitura de pdf
 pdfjsLib.GlobalWorkerOptions.workerSrc = path.resolve(
     __dirname, 
     '../../dist/pdf.worker.bundle.js');
@@ -12,6 +13,7 @@ export class DocumentPreviewController{
 
     }
 
+    // faz o preview da imagem ou arquivo
     getPreviewData(){
 
         return new Promise((resolve, reject)=>{
@@ -20,6 +22,7 @@ export class DocumentPreviewController{
 
             switch(this._file.type){
                 
+                // trata o preview de imagens
                 case 'image/png':
                 case 'image/jpeg':
                 case 'image/jpg':
@@ -43,6 +46,7 @@ export class DocumentPreviewController{
                     reader.readAsDataURL(this._file);
                     break;
                 
+                // Trata o preview de pdf
                 case 'application/pdf':
 
                     reader.onload = e =>{

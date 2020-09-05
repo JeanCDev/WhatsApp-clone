@@ -4,6 +4,7 @@ export class CameraController{
 
         this._videoEl = videoEl;
 
+        // acessa a camera do usuário
         navigator.mediaDevices.getUserMedia({
             video: true,
         }).then(stream => {
@@ -18,6 +19,7 @@ export class CameraController{
 
     }
 
+    // para a camera do usuário
     stop() {
         
         this._stream.getTracks().forEach(track => {
@@ -26,6 +28,7 @@ export class CameraController{
 
     }
 
+    // tira foto com a camera do usuário
     takePicture(mimeType = 'image/png') {
 
         let canvas = document.createElement('canvas');
