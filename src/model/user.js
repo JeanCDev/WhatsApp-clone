@@ -3,19 +3,13 @@ import { Model } from './model';
 
 export class User extends Model{
 
-    constructor(response) {
+    constructor(id) {
         super();
-        if (response.user.email) {
-            this.getById(response.user.email).then(resp => {
-                if (!resp.exists) {
-                    this.name = response.user.displayName;
-                    this.email = response.user.email;
-                    this.photo = response.user.photoURL;
- 
-                    this.save();
-                }
-            });
-        }
+        
+        this._data = {}
+
+        if(id) this.getById(id);
+
     }
 
     // pegar e setar o nome do usuário
@@ -36,14 +30,14 @@ export class User extends Model{
         return new Promise((resolve, reject) => {
 
             User.findUserByEmail(id).onSnapshot(doc =>{
-                console.log(doc)
+                
                 this.fromJSON(doc.data());
                 
                 resolve(doc);
 
-            });
+            })
 
-        });
+        }).catch(err => reject(err));;
 
     }
 
@@ -65,6 +59,17 @@ export class User extends Model{
     static findUserByEmail(email){
 
         return User.getRef().doc(email);
+
+    }
+
+    // adicionar novo contato
+    addContact(contact){
+
+        return User.getRef()
+            .doc(this.email)
+            .collection('contacts')
+            .doc(btoa(contact.email))
+            .set(contact.toJSON());
 
     }
 

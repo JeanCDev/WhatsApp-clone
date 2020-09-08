@@ -36,7 +36,9 @@ export class WhatsAppController {
         this._firebase.initAuth()
             .then(response=> {
 
-                this._user = new User(response);
+                this._user = new User(response.user.email);
+
+                //let userRef = User.findByEmail(response.user.email);
 
                 // atualizar informações do app com as informações do firebase
                 this._user.on('datachange', data =>{
@@ -178,6 +180,34 @@ export class WhatsAppController {
             e.preventDefault();
 
             let formData = new FormData(this.el.formPanelAddContact);
+
+            console.log(formData.get('email'));
+
+            let contact = new User(formData.get('email'));
+
+            console.log(contact)
+
+            contact.on('datachange', data =>{
+
+                if(data.name){
+
+                    console.log(data.name)
+
+                    this._user.addContact(contact).then(() => {
+
+                            this.el.btnClosePanelAddContact.click();
+                            console.info('Contato adicionado');
+
+                        });
+
+                } else {
+
+                    console.error('Usuário não encontrado');
+
+                }
+
+            });
+
         });
 
         this.el.btnClosePanelAddContact.on('click', e => {
@@ -223,8 +253,6 @@ export class WhatsAppController {
                 this.el.btnSavePanelEditProfile.disabled = true;
 
             });
-
-            console.log();
         });
 
         // Eventos da lista de contatos
@@ -242,7 +270,7 @@ export class WhatsAppController {
 
         // Eventos do menu de anexos
 
-        //abrer menu de anexos
+        //abre menu de anexos
         this.el.btnAttach.on('click', e => {
 
             e.stopPropagation();
