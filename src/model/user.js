@@ -3,19 +3,11 @@ import { Model } from './model';
 
 export class User extends Model{
 
-    constructor(response) {
+    constructor(id) {
         super();
-        if (response.user.email) {
-            this.getById(response.user.email).then(resp => {
-                if (!resp.exists) {
-                    this.name = response.user.displayName;
-                    this.email = response.user.email;
-                    this.photo = response.user.photoURL;
- 
-                    this.save();
-                }
-            });
-        }
+
+        if(id) this.getById(id);
+
     }
 
     // pegar e setar o nome do usuário
@@ -36,7 +28,7 @@ export class User extends Model{
         return new Promise((resolve, reject) => {
 
             User.findUserByEmail(id).onSnapshot(doc =>{
-                console.log(doc)
+                
                 this.fromJSON(doc.data());
                 
                 resolve(doc);
@@ -61,10 +53,56 @@ export class User extends Model{
 
     }
 
+    static getContactsRef(id){
+
+        return User.getRef()
+                .doc(id)
+                .collection('contacts')
+
+    }
+
     // encontrar os dados do usuário pelo email no firestore
     static findUserByEmail(email){
 
         return User.getRef().doc(email);
+
+    }
+
+    // adicionar novo contato
+    addContact(contact){
+
+        return User.getContactsRef(this.email)
+            .doc(btoa(contact.email))
+            .set(contact.toJSON());
+
+    }
+
+    getContacts(){
+
+        return new Promise((resolve, reject) =>{
+
+            User.getContactsRef(this.email).onSnapshot(docs => {
+
+                let contacts = [];
+
+                docs.forEach(doc => {
+
+                    let data = doc.data();
+
+                    data.id = data.id;
+
+                    contacts.push(data);
+
+                });
+
+                this.trigger('contactschange', docs);
+
+                resolve(contacts);
+
+            });
+
+
+        });
 
     }
 
