@@ -22,6 +22,10 @@ export class User extends Model{
     get photo(){ return this._data.photo }
     set photo(value){ this._data.photo = value; }
 
+    // pegar e setar p Id do chat do usuário
+    get chatId(){ return this._data.chatId; }
+    set chatId(value){ this._data.chatId = value; }
+
     // pegar o usuário pela referência do email
     getById(id){
 
@@ -53,6 +57,7 @@ export class User extends Model{
 
     }
 
+    // pega a referência dos contatos no firestore
     static getContactsRef(id){
 
         return User.getRef()
@@ -77,6 +82,7 @@ export class User extends Model{
 
     }
 
+    // pegar a lista de contatos do Firebase
     getContacts(){
 
         return new Promise((resolve, reject) =>{
