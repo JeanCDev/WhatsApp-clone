@@ -9,12 +9,15 @@ export class Chat extends Model{
 
     }
 
+    // pegar e setar os usuários do chat
     get users(){ return this._data.users; }
     set users(value){ this._data.users = value; }
 
+    // pegar e setar a data de criação do chat
     get timestamp(){ return this._data.timestamp; }
     set timestamp(value){ this._data.timestamp = value; }
 
+    // pegar a referência dos chats
     static getRef(){
 
         return Firebase.db().collection('/chats');

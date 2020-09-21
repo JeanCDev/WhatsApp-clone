@@ -197,31 +197,66 @@ export class WhatsAppController {
         });
 
         //carrega mensagens do chat
+        this.el.panelMessagesContainer.innerHTML = '';
+
         Message.getRef(this._contactActive.chatId)
             .orderBy('timeStamp').onSnapshot(docs => {
 
-                this.el.panelMessagesContainer.innerHTML = '';
+                // configuração do scroll das novas mensagens
+                let scrollTop = this.el.panelMessagesContainer.scrollTop;
+                let scrollTopMax = 
+                    (this.el.panelMessagesContainer.scrollHeight - 
+                    this.el.panelMessagesContainer.offsetHeight);
+                let autoScroll = (scrollTop >= scrollTopMax);
                 
                 docs.forEach(doc =>{
 
                     let data = doc.data();
                     data.id = doc.id;
 
-                    
+                    // adiciona na tela somente as novas mensagens
+
+                    let message = new Message();
+                    message.fromJSON(data);
+
+                    let me = (data.from === this._user.email);
 
                     if(!this.el.panelMessagesContainer.querySelector('#_'+data.id)){
 
-                        let message = new Message();
-                        message.fromJSON(data);
+                        if(!me){
 
-                        let me = (data.from === this._user.email);
+                            doc.ref.set({
+                                status: 'read'
+                            },{merge: true});
+
+                        }
+
                         let view = message.getViewElement(me);
 
                         this.el.panelMessagesContainer.appendChild(view);
 
+                    } else if(me){
+
+                        let msgEl = this.el.panelMessagesContainer.querySelector('#_'+data.id);
+
+                        msgEl.querySelector('.message-status').innerHTML = message.getStatusViewElement().outerHTML;
+
                     }
 
                 });
+
+                // Lógica para fazer o scroll da página somente se estiver no final
+                if(autoScroll){
+
+                    this.el.panelMessagesContainer.scrollTop = 
+                        (this.el.panelMessagesContainer.scrollHeight - 
+                        this.el.panelMessagesContainer.offsetHeight);
+
+                } else{
+
+                    this.el.panelMessagesContainer.scrollTop = scrollTop;
+
+                }
 
             });
 
@@ -320,6 +355,23 @@ export class WhatsAppController {
 
     //inicia os eventos
     initEvents() {
+
+        // Eventos do input para pesquisar contato
+        this.el.inputSearchContacts.on('keyup', e =>{
+
+            if(this.el.inputSearchContacts.value.length > 0){
+
+                this.el.inputSearchContactsPlaceholder.hide();
+
+            } else{
+
+                this.el.inputSearchContactsPlaceholder.show();
+
+            }
+
+            this._user.getContacts(this.el.inputSearchContacts.value);
+
+        });
 
         // Eventos do menu de adicionar contatos
         this.el.btnNewContact.on('click', e => {
