@@ -16,6 +16,12 @@ import {
 import { 
     User 
 } from './../model/user';
+import { 
+    Chat 
+} from '../model/chat';
+import { 
+    Message 
+} from './../model/message';
 
 export class WhatsAppController {
 
@@ -78,7 +84,7 @@ export class WhatsAppController {
 
     }
 
-    // carrega lista de contatos do usuário
+    // carrega lista de contatos do usuário no app
     initContacts(){
 
         this._user.on('contactschange', docs =>{
@@ -113,7 +119,7 @@ export class WhatsAppController {
                                 <span dir="auto" title="${contact.name}" class="_1wjpf">${contact.name}</span>
                             </div>
                             <div class="_3Bxar">
-                                <span class="_3T2VG">${contact.lastMassageTime}</span>
+                                <span class="_3T2VG">${contact.lastMessageTime}</span>
                             </div>
                         </div>
                         <div class="_1AwDx">
@@ -128,7 +134,7 @@ export class WhatsAppController {
                                             </svg>
                                         </span>
                                     </div>
-                                    <span dir="ltr" class="_1wjpf _3NFp9">${contact.lastMassage}</span>
+                                    <span dir="ltr" class="_1wjpf _3NFp9">${contact.lastMessage}</span>
                                     <div class="_3Bxar">
                                         <span>
                                             <div class="_15G96">
@@ -148,6 +154,12 @@ export class WhatsAppController {
                        img.show();
                     }
 
+                div.on('click', e =>{
+
+                    this.setActiveChat(contact);
+
+                });
+
                 this.el.contactsMessagesList.appendChild(div);
 
             });                     
@@ -155,6 +167,63 @@ export class WhatsAppController {
         });
 
         this._user.getContacts();
+
+    }
+
+    // define o chat que será ativado ao clicar em um contato
+    setActiveChat(contact) {
+
+        if(this._contactActive){
+            Message.getRef(this._contactActive.chatId)
+                .onSnapshot(()=>{});
+        }
+
+        this._contactActive = contact;
+
+        this.el.activeName.innerHTML = contact.name;
+        this.el.activeStatus.innerHTML = contact.status;
+
+        if(contact.photo){
+
+            let img = this.el.activePhoto;
+            img.src = contact.photo;
+            img.show();
+
+        }
+
+        this.el.home.hide();
+        this.el.main.css({
+            display: 'flex'
+        });
+
+        //carrega mensagens do chat
+        Message.getRef(this._contactActive.chatId)
+            .orderBy('timeStamp').onSnapshot(docs => {
+
+                this.el.panelMessagesContainer.innerHTML = '';
+                
+                docs.forEach(doc =>{
+
+                    let data = doc.data();
+                    data.id = doc.id;
+
+                    
+
+                    if(!this.el.panelMessagesContainer.querySelector('#_'+data.id)){
+
+                        let message = new Message();
+                        message.fromJSON(data);
+
+                        let me = (data.from === this._user.email);
+                        let view = message.getViewElement(me);
+
+                        this.el.panelMessagesContainer.appendChild(view);
+
+                    }
+
+                });
+
+            });
 
     }
 
@@ -263,6 +332,7 @@ export class WhatsAppController {
 
         });
 
+        // adicionar um contato
         this.el.formPanelAddContact.on('submit', e => {
             e.preventDefault();
 
@@ -273,13 +343,23 @@ export class WhatsAppController {
             contact.on('datachange', data =>{
 
                 if(data.name){
+                    
+                    Chat.createIfNotExists(this._user.email, contact.email).then(chat => {
 
-                    this._user.addContact(contact).then(() => {
+                        contact.chatId = chat.id;
+
+                        this._user.chatId = chat.id;
+
+                        contact.addContact(this._user);
+
+                        this._user.addContact(contact).then(() => {
 
                             this.el.btnClosePanelAddContact.click();
                             console.info('Contato adicionado');
 
                         });
+
+                    });
 
                 } else {
 
@@ -559,6 +639,20 @@ export class WhatsAppController {
 
         });
 
+        // Evento do botão de enviar mensagem
+        this.el.btnSend.on('click', e => {
+
+            Message.send(
+                this._contactActive.chatId,
+                this._user.email,
+                'text',
+                this.el.inputText.innerHTML);
+
+            this.el.inputText.innerHTML = '';
+            this.el.panelEmojis.removeClass('open');
+
+        });
+
         // eventos do botão de emojis
         this.el.btnEmojis.on('click', e => {
 
@@ -607,13 +701,6 @@ export class WhatsAppController {
                 this.el.inputText.dispatchEvent(new Event('keyup'));
 
             });
-
-        });
-
-        // Evento do botão de enviar mensagem
-        this.el.btnSend.on('click', e => {
-
-            console.log(this.el.inputText.innerHTML);
 
         });
 
