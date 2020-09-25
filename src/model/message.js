@@ -1,35 +1,61 @@
-import { Model } from './model';
-import { Firebase } from '../utils/fireBase';
-import { Format } from '../utils/format';
+import {
+    Model
+} from './model';
+import {
+    Firebase
+} from '../utils/fireBase';
+import {
+    Format
+} from '../utils/format';
 
-export class Message extends Model{
+export class Message extends Model {
 
-    constructor(){
+    constructor() {
         super();
     }
 
     // pegar e setar o id da mensagem
-    get id(){ return this._data.id; }
-    set id(value){ this._data.id = value }
+    get id() {
+        return this._data.id;
+    }
+    set id(value) {
+        this._data.id = value
+    }
 
     // pegar e setar o conteúdo da mensagem
-    get content(){ return this._data.content; }
-    set content(value){ this._data.content = value }
+    get content() {
+        return this._data.content;
+    }
+    set content(value) {
+        this._data.content = value
+    }
 
     // pegar e setar o tipo da mensagem
-    get type(){ return this._data.type; }
-    set type(value){ this._data.type = value }
+    get type() {
+        return this._data.type;
+    }
+    set type(value) {
+        this._data.type = value
+    }
 
     // pegar e setar o a hora da mensagem
-    get timeStamp(){ return this._data.timeStamp; }
-    set timeStamp(value){ this._data.timeStamp = value }
+    get timeStamp() {
+        return this._data.timeStamp;
+    }
+    set timeStamp(value) {
+        this._data.timeStamp = value
+    }
 
     // pegar e setar o status da mensagem
-    get status(){ return this._data.status; }
-    set status(value){ this._data.status = value }
+    get status() {
+        return this._data.status;
+    }
+    set status(value) {
+        this._data.status = value
+    }
 
     // cria a div dependendo do tipo da mensagem
-    getViewElement(me = true){
+    getViewElement(me = true) {
 
         let div = document.createElement('div');
         div.className = 'message';
@@ -98,13 +124,8 @@ export class Message extends Model{
                                         </div>
                                     </div>
                                 </div>
-                                <img src="#" class="_1JVSX message-photo" style="width: 100%; display:none">
+                                <img src="${this.content}" class="_1JVSX message-photo" style="width: 100%; display:none">
                                 <div class="_1i3Za"></div>
-                            </div>
-                            <div class="message-container-legend">
-                                <div class="_3zb-j ZhF0n">
-                                    <span dir="ltr" class="selectable-text invisible-space copyable-text message-text">Texto da foto</span>
-                                </div>
                             </div>
                             <div class="_2TvOE">
                                 <div class="_1DZAH text-white" role="button">
@@ -123,6 +144,15 @@ export class Message extends Model{
                     </div>
                 </div>
                 `;
+
+                div.querySelector('.message-photo').on('load', e =>{
+
+                    div.querySelector('._34Olu').hide();
+                    div.querySelector('.message-photo').show();
+                    div.querySelector('._3v3PK').css({height: 'auto'});
+
+                });
+                
                 break;
 
             case 'document':
@@ -232,7 +262,7 @@ export class Message extends Model{
 
         let className = 'message-in';
 
-        if(me){
+        if (me) {
 
             className = 'message-out';
 
@@ -246,9 +276,48 @@ export class Message extends Model{
 
     }
 
+    static sendImage(chatId, from, file) {
+
+        return new Promise((resolve, reject) => {
+
+            let uploadTask = Firebase.hd().ref(from).child(Date.now() + '_' + file.name).put(file);
+
+            uploadTask.on('state_changed', e => {
+
+                console.info('Upload', e);
+
+            }, err => {
+
+                console.error(err);
+                reject();
+
+            }, () => {
+
+                uploadTask.snapshot.ref.getDownloadURL().then(downloadURL =>{
+
+                    Message.send(chatId, 
+                        from, 
+                        'image', 
+                        downloadURL)
+                        .then(() => {
+    
+                            resolve();
+    
+                    });
+
+                });
+                
+            });
+
+        });
+
+
+
+    }
+
     // método para enviar a mensagem para o firebase
-    static send(chatId, from, type, content){
-        
+    static send(chatId, from, type, content) {
+
         return new Promise((resolve, reject) => {
 
             Message.getRef(chatId).add({
@@ -256,14 +325,14 @@ export class Message extends Model{
                 timeStamp: new Date(),
                 status: 'wait',
                 type,
-                from 
-            }).then(result =>{
+                from
+            }).then(result => {
 
                 result.parent.doc(result.id).set({
-                    status:'sent'
+                    status: 'sent'
                 }, {
-                    merge:true
-                }).then(()=>{
+                    merge: true
+                }).then(() => {
                     resolve();
                 });
 
@@ -273,7 +342,7 @@ export class Message extends Model{
     }
 
     // pega referência das mensagem de um chat
-    static getRef(chatId){
+    static getRef(chatId) {
 
         return Firebase.db()
             .collection('chats')
@@ -282,13 +351,13 @@ export class Message extends Model{
 
     }
 
-    getStatusViewElement(){
+    getStatusViewElement() {
 
         let div = document.createElement('div');
 
         div.className = 'message-status'
 
-        switch(this.status){
+        switch (this.status) {
 
             case 'wait':
                 div.innerHTML = `
@@ -299,7 +368,7 @@ export class Message extends Model{
                     </span>
                 `
                 break;
-            
+
             case 'sent':
                 div.innerHTML = `
                     <span data-icon="msg-check">
@@ -319,7 +388,7 @@ export class Message extends Model{
                     </span>
                 `
                 break;
-            
+
             case 'read':
                 div.innerHTML = `
                     <span data-icon="msg-dblcheck-ack">
