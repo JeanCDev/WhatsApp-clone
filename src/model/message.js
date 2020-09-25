@@ -19,7 +19,7 @@ export class Message extends Model {
         return this._data.id;
     }
     set id(value) {
-        this._data.id = value
+        return this._data.id = value
     }
 
     // pegar e setar o conteúdo da mensagem
@@ -27,7 +27,7 @@ export class Message extends Model {
         return this._data.content;
     }
     set content(value) {
-        this._data.content = value
+        return this._data.content = value
     }
 
     // pegar e setar o tipo da mensagem
@@ -35,7 +35,7 @@ export class Message extends Model {
         return this._data.type;
     }
     set type(value) {
-        this._data.type = value
+        return this._data.type = value
     }
 
     // pegar e setar o a hora da mensagem
@@ -43,7 +43,7 @@ export class Message extends Model {
         return this._data.timeStamp;
     }
     set timeStamp(value) {
-        this._data.timeStamp = value
+        return this._data.timeStamp = value
     }
 
     // pegar e setar o status da mensagem
@@ -51,7 +51,55 @@ export class Message extends Model {
         return this._data.status;
     }
     set status(value) {
-        this._data.status = value
+        return this._data.status = value
+    }
+
+    // pega e setar a imagem de preview do documento pdf
+    get preview() {
+        return this._data.preview;
+    }
+    set preview(value) {
+        return this._data.preview = value
+    }
+
+    // pegar e setar as informações do arquivo
+    get info() {
+        return this._data.info;
+    }
+    set info(value) {
+        return this._data.info = value
+    }
+    
+    // pegar e setar o tipo do arquivo
+    get fileType() {
+        return this._data.fileType;
+    }
+    set fileType(value) {
+        return this._data.fileType = value
+    }
+
+    // pegar e setar o nome do arquivo
+    get fileName() {
+        return this._data.fileName;
+    }
+    set fileName(value) {
+        return this._data.fileName = value
+    }
+
+    // pegar e setar o tamanho do arquivo
+    get size() {
+        return this._data.size;
+    }
+    set size(value) {
+        return this._data.size = value
+    }
+
+    // pegar e setar o remetente da mensagem
+    get from() {
+        return this._data.from;
+    }
+    set from(value) {
+        return this._data.from = value
     }
 
     // cria a div dependendo do tipo da mensagem
@@ -64,7 +112,7 @@ export class Message extends Model {
 
             case 'contact':
                 div.innerHTML = `
-                <div class="_3_7SH kNKwo tail">
+                <div class="_3_7SH kNKwo tail" id="_${this.id}">
                     <span class="tail-container"></span>
                     <span class="tail-container highlight"></span>
                     <div class="_1YNgi copyable-text">
@@ -85,7 +133,7 @@ export class Message extends Model {
                                 </div>
                             </div>
                             <div class="_1lC8v">
-                                <div dir="ltr" class="_3gkvk selectable-text invisible-space copyable-text">Nome do Contato Anexado</div>
+                                <div dir="ltr" class="_3gkvk selectable-text invisible-space copyable-text">${this.content.name}</div>
                             </div>
                             <div class="_3a5-b">
                                 <div class="_1DZAH" role="button">
@@ -100,11 +148,26 @@ export class Message extends Model {
 
                 </div>
                 `;
+
+                if(this.content.photo){
+
+                    let img = div.querySelector('.photo-contact-sended');
+                    img.src = this.content.photo;
+                    img.show();
+
+                }
+
+                div.querySelector('.btn-message-send').on('click', e =>{
+
+                    console.log('Enviar Mensagem')
+
+                });
+
                 break;
 
             case 'image':
                 div.innerHTML = `
-                <div class="_3_7SH _3qMSo">
+                <div class="_3_7SH _3qMSo" id="_${this.id}">
                     <div class="KYpDv">
                         <div>
                             <div class="_3v3PK" style="width: 330px; height: 330px;">
@@ -145,28 +208,30 @@ export class Message extends Model {
                 </div>
                 `;
 
-                div.querySelector('.message-photo').on('load', e =>{
+                div.querySelector('.message-photo').on('load', e => {
 
                     div.querySelector('._34Olu').hide();
                     div.querySelector('.message-photo').show();
-                    div.querySelector('._3v3PK').css({height: 'auto'});
+                    div.querySelector('._3v3PK').css({
+                        height: 'auto'
+                    });
 
                 });
-                
+
                 break;
 
             case 'document':
                 div.innerHTML = `
-                <div class="_3_7SH _1ZPgd">
+                <div class="_3_7SH _1ZPgd" id="_${this.id}">
                     <div class="_1fnMt _2CORf">
                         <a class="_1vKRe" href="#">
-                            <div class="_2jTyA" style="background-image: url()"></div>
+                            <div class="_2jTyA" style="background-image: url(${this.preview})"></div>
                             <div class="_12xX7">
                                 <div class="_3eW69">
                                     <div class="JdzFp message-file-icon icon-doc-pdf"></div>
                                 </div>
                                 <div class="nxILt">
-                                    <span dir="auto" class="message-filename">Arquivo.pdf</span>
+                                    <span dir="auto" class="message-filename">${this.fileName}</span>
                                 </div>
                                 <div class="_17viz">
                                     <span data-icon="audio-download" class="message-file-download">
@@ -184,9 +249,9 @@ export class Message extends Model {
                             </div>
                         </a>
                         <div class="_3cMIj">
-                            <span class="PyPig message-file-info">32 páginas</span>
-                            <span class="PyPig message-file-type">PDF</span>
-                            <span class="PyPig message-file-size">4 MB</span>
+                            <span class="PyPig message-file-info">${this.info}</span>
+                            <span class="PyPig message-file-type">${this.fileType}</span>
+                            <span class="PyPig message-file-size">${this.size}</span>
                         </div>
                         <div class="_3Lj_s">
                             <div class="_1DZAH" role="button">
@@ -196,6 +261,13 @@ export class Message extends Model {
                     </div>
                 </div>
                 `;
+
+                div.on('click', e=>{
+
+                    window.open(this.content);
+
+                });
+
                 break;
 
             case 'audio':
@@ -276,7 +348,103 @@ export class Message extends Model {
 
     }
 
+    static sendContact(chatId, from, contact){
+
+        console.log(contact);
+
+        contact.id = '';
+
+        return Message.send(chatId, from, 'contact', contact);
+
+    }
+
+    // Converte o método Send, para envio de imagens
     static sendImage(chatId, from, file) {
+
+        return new Promise((resolve, reject) => {
+
+            Message.upload(file, from).then(snapshot => {
+
+                snapshot.ref.getDownloadURL().then(downloadURL => {
+
+                    Message.send(chatId,
+                            from,
+                            'image',
+                            downloadURL)
+                        .then(() => {
+
+                            resolve();
+
+                        });
+
+                });
+
+            });
+
+        });
+
+    }
+
+    // converte o Send para o envio de arquivos
+    static sendDocument(chatId, from, file, filePreview, info) {
+
+        Message.send(chatId, from, 'document', '')
+            .then(msgRef => {
+                
+                Message.upload(file, from).then(snapshot => {
+
+                    snapshot.ref.getDownloadURL().then(downloadURL => {
+
+                        let downloadFile = downloadURL;
+
+                        Message.upload(filePreview, from).then(snapshot2 => {
+
+                            snapshot2.ref.getDownloadURL().then(downloadURL2 => {
+
+                                let downloadPreview = downloadURL2;
+
+                                if(filePreview){
+
+                                    msgRef.set({
+                                        content: downloadFile,
+                                        preview: downloadPreview,
+                                        fileName: file.name,
+                                        size: file.size,
+                                        fileType: file.type,
+                                        status: 'sent',
+                                        info
+                                    }, {
+                                        merge: true
+                                    });
+
+                                } else {
+                                    
+                                    msgRef.set({
+                                        content: downloadFile,
+                                        fileName: file.name,
+                                        size: file.size,
+                                        fileType: file.type,
+                                        status: 'sent'
+                                    }, {
+                                        merge: true
+                                    });
+
+                                }
+
+                            });
+
+                        });
+
+                    });
+
+                });
+
+            });
+
+    }
+
+    // Método para criar um upload de arquivos diverso no firebase
+    static upload(file, from) {
 
         return new Promise((resolve, reject) => {
 
@@ -288,30 +456,14 @@ export class Message extends Model {
 
             }, err => {
 
-                console.error(err);
-                reject();
+                reject(err);
 
             }, () => {
 
-                uploadTask.snapshot.ref.getDownloadURL().then(downloadURL =>{
+                resolve(uploadTask.snapshot);
 
-                    Message.send(chatId, 
-                        from, 
-                        'image', 
-                        downloadURL)
-                        .then(() => {
-    
-                            resolve();
-    
-                    });
-
-                });
-                
             });
-
         });
-
-
 
     }
 
@@ -328,12 +480,14 @@ export class Message extends Model {
                 from
             }).then(result => {
 
-                result.parent.doc(result.id).set({
+                let docRef = result.parent.doc(result.id);
+
+                docRef.set({
                     status: 'sent'
                 }, {
                     merge: true
                 }).then(() => {
-                    resolve();
+                    resolve(docRef);
                 });
 
             });
@@ -351,6 +505,7 @@ export class Message extends Model {
 
     }
 
+    // me´todo que atualiza o status da mensagem enviada
     getStatusViewElement() {
 
         let div = document.createElement('div');
