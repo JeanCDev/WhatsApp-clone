@@ -5,7 +5,7 @@ export class Chat extends Model{
 
     constructor(){ 
 
-        super();
+        //super();
 
     }
 
@@ -20,7 +20,7 @@ export class Chat extends Model{
     // pegar a referência dos chats
     static getRef(){
 
-        return Firebase.db().collection('/chats');
+        return Firebase.db().collection('chats');
 
     }
 
