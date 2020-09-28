@@ -1,5 +1,6 @@
 import {Firebase} from './firebase';
 
+// faz upload de arquivos para o firebase e retorna o link deles
 export class Upload{
 
     static send(file, from) {

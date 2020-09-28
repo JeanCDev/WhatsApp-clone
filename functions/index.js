@@ -3,6 +3,7 @@ const admin = require('firebase-admin');
 
 const keyStr = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
 
+// transforma texto em Base64
 let encode64 = function (input) {
     input = escape(input);
     var output = "";
@@ -38,6 +39,7 @@ let encode64 = function (input) {
     return output;
 }
 
+// transforma base64 em texto
 let decode64 = function (input) {
     var output = "";
     var chr1, chr2, chr3 = "";
@@ -79,10 +81,13 @@ let decode64 = function (input) {
     return unescape(output);
 }
 
+// inicia as functions no firebase
 admin.initializeApp(functions.config().firebase);
 
+// acessa o firestore
 const db = admin.firestore();
 
+// pega o horário e conteúdo da ultima mensagem enviada pelo contato
 exports.saveLastMessage = functions.firestore.document('chats/{chatId}/messages/{messageId}').onCreate((change, context) => {
 
     const chatId = context.params.chatId;

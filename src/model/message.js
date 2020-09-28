@@ -516,7 +516,7 @@ export class Message extends Model {
 
     }
 
-    //
+    // faz upload do audio e envia para o outro usuário
     static sendAudio( chatId, from, file, metadata, photo){
 
         return Message.send(chatId, from, 'audio', '').then(msgRef => {

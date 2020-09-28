@@ -34,12 +34,67 @@ export class WhatsAppController {
 
     constructor() {
 
+        this._active = true;
         this._firebase = new Firebase();
         this.initAuth();
 
         this.elementsPrototype();
         this.loadElements();
         this.initEvents();
+        this.checkNotifications();
+
+    }
+
+    // verifica se o usuário permitiu notificações
+    checkNotifications(){
+
+        if(typeof Notification === 'function'){
+
+            if(Notification.permission !== 'granted'){
+                this.el.alertNotificationPermission.show();
+            } else{
+                this.el.alertNotificationPermission.hide();
+            }
+
+            this.el.alertNotificationPermission.on('click', e=> {
+
+                Notification.requestPermission(permission =>{
+
+                    if(permission === 'granted'){
+                        this.el.alertNotificationPermission.hide();
+                        console.info('Notificações Permitidas');
+                    }
+
+                });
+
+            });
+
+        }
+
+    }
+
+    // Método que executa as notificações
+    notification(data) {
+
+        if(Notification.permission === 'granted' && !this._active){
+
+            let notification = new Notification(
+                this._contactActive.name, {
+                    icon: this._contactActive.photo,
+                    body: data.content
+                });
+
+            let notificationSound = new Audio('./audio/alert.mp3');
+            notificationSound.currentTime = 0;
+            notificationSound.play();
+            
+            setTimeout(() => {
+
+                if (notification) notification.close();
+
+            }, 3000);
+
+        }
 
     }
 
@@ -206,6 +261,9 @@ export class WhatsAppController {
         //carrega mensagens do chat
         this.el.panelMessagesContainer.innerHTML = '';
 
+        // array com todas as notificações enviadas
+        this._messagesReceived = [];
+
         Message.getRef(this._contactActive.chatId)
             .orderBy('timeStamp').onSnapshot(docs => {
 
@@ -216,17 +274,24 @@ export class WhatsAppController {
                     this.el.panelMessagesContainer.offsetHeight);
                 let autoScroll = (scrollTop >= scrollTopMax);
                 
+                // adiciona na tela somente as novas mensagens
                 docs.forEach(doc =>{
 
                     let data = doc.data();
                     data.id = doc.id;
-
-                    // adiciona na tela somente as novas mensagens
-
+                    
                     let message = new Message();
                     message.fromJSON(data);
-
                     let me = (data.from === this._user.email);
+
+                    // executa a notificação no Browser
+                    if(!me && this._messagesReceived.filter(id=>{return (id == data.id) }).length === 0){
+
+                        this.notification(data);
+                        this._messagesReceived.push(data.id);
+
+                    }
+
                     let view = message.getViewElement(me);
 
                     if(!this.el.panelMessagesContainer.querySelector('#_'+data.id)){
@@ -399,6 +464,18 @@ export class WhatsAppController {
     //inicia os eventos
     initEvents() {
 
+        window.addEventListener('focus', e => {
+
+            this._active = true;
+
+        });
+
+        window.addEventListener('blur', e => {
+
+            this._active = false;
+
+        });
+
         // Eventos do input para pesquisar contato
         this.el.inputSearchContacts.on('keyup', e =>{
 
@@ -491,6 +568,7 @@ export class WhatsAppController {
 
         this.el.inputProfilePhoto.on('change', e=>{
 
+            // atualiza foto de perfil do usuário
             if(this.el.inputProfilePhoto.files.length > 0){
 
                 let file = this.el.inputProfilePhoto.files[0];
@@ -806,6 +884,7 @@ export class WhatsAppController {
 
         });
 
+        // envia o audio do microfone
         this.el.btnFinishMicrophone.on('click', e => {
 
             this._microphoneController.on('recorded', (file, metadata)=>{
